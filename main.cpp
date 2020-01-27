@@ -6,21 +6,36 @@
 #include <chrono>
 
 typedef std::vector<double> RecordWithResult; ///<kontener na jeden obiekt cech z wynikiem; szukana cecha jest na końcu
+typedef std::vector<double> RecordWithoutResult; ///<kontener na jeden obiekt cech bez wyniku
 typedef std::vector<RecordWithResult> Samples; ///<kontener z próbkami
+
+bool featureToBool(double feature) {
+    if(feature == 0) return false;
+    else return true;
+}
+double boolToFeature(bool b) {
+    if(b) return 1;
+    else return 0;
+}
 
 class DecisionStump {
 public:
     DecisionStump() = default;
-    DecisionStump(size_t indexOfDecisiveFeature, double dividingValue, bool biggerThanDividingValue)
-    : indexOfDecisiveFeature_(indexOfDecisiveFeature), dividingValue_(dividingValue), biggerThanDividingValue_(biggerThanDividingValue) {}
-    bool operator()(const RecordWithResult& sample) {
-        if(biggerThanDividingValue_) return sample.at(indexOfDecisiveFeature_) > dividingValue_;
-        else return sample.at(indexOfDecisiveFeature_) < dividingValue_;
+    void setAttributes(size_t indexOfDecisiveFeature, double dividingValue, double resultIfBiggerValue, double resultIfSmallerValue) {
+        indexOfDecisiveFeature_ = indexOfDecisiveFeature;
+        dividingValue_ = dividingValue;
+        resultIfBiggerValue_ = resultIfBiggerValue;
+        resultIfSmallerValue_ = resultIfSmallerValue;
+    }
+    bool predict(const RecordWithoutResult& sample) const { // also works with RecordWithResult
+        if(sample.at(indexOfDecisiveFeature_) > dividingValue_) return resultIfBiggerValue_;
+        else return resultIfSmallerValue_;
     }
 private:
     size_t indexOfDecisiveFeature_;
     double dividingValue_;
-    bool biggerThanDividingValue_;
+    bool resultIfBiggerValue_;
+    bool resultIfSmallerValue_;
 };
 
 struct StumpCreator {
@@ -53,6 +68,33 @@ private:
     }
 
     double rateDecisionStump(const Samples& samples, const StumpCreator& stump);
+    double rateDecisionStump(const Samples& samples, const DecisionStump& stump) {
+        double stumpSaidTrueAndItIs = 0; // liczba przypadków, dla których drzewo powiedziało, że prawda i faktycznie była prawda
+        double stumpSaidTrueButItIsNot = 0;
+        double stumpSaidFalseAndItIs = 0;
+        double stumpSaidFalseButItIsNot = 0;
+        for(size_t i = 0; i < samples.size(); ++i) {
+            if(stump.predict(samples.at(i)) == true) {
+                if(featureToBool(samples.at(i).back()) == true) stumpSaidTrueAndItIs += 1;
+                else stumpSaidTrueButItIsNot += 1;
+            }
+            else {
+                if(featureToBool(samples.at(i).back()) == false) stumpSaidFalseAndItIs += 1;
+                else stumpSaidFalseButItIsNot += 1;
+            }
+        }
+        double stumpSaidTrue = stumpSaidTrueAndItIs + stumpSaidTrueButItIsNot; // liczba przypadków, gdy drzewo powiedziało, że prawda
+        double stumpSaidFalse = stumpSaidFalseAndItIs + stumpSaidFalseButItIsNot; // liczba przypadków, gdy drzewo powiedziało, że fałs
+        double giniImpurityForTrueLeaf;
+        if(stumpSaidTrue <= 0) giniImpurityForTrueLeaf = 1; // unikamy dzielenia przez 0 linijkę poniżej
+        else giniImpurityForTrueLeaf = 1 - pow(stumpSaidTrueAndItIs / stumpSaidTrue, 2) - pow(stumpSaidTrueButItIsNot / stumpSaidTrue, 2);
+        double giniImpurityForFalseLeaf;
+        if(stumpSaidFalse <= 0) giniImpurityForFalseLeaf = 1; // unikamy dzielenia przez 0 linijkę poniżej
+        else giniImpurityForFalseLeaf = 1 - pow(stumpSaidFalseAndItIs / stumpSaidFalse, 2) - pow(stumpSaidFalseButItIsNot / stumpSaidFalse, 2);
+        double giniImpurity = giniImpurityForTrueLeaf * stumpSaidTrue / (stumpSaidTrue + stumpSaidFalse) +
+                giniImpurityForFalseLeaf * stumpSaidFalse / (stumpSaidTrue + stumpSaidFalse);
+        return giniImpurity;
+    }
 
     double calculateAmountOfSay(const std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification) {
         double totalError = 0;
@@ -123,6 +165,18 @@ public:
             changeSamples(samples, weightsOfSamples);
         }
     }
+
+    double prediction(const RecordWithoutResult& record) {
+        double amountOfSayForTrue = 0;
+        double amountOfSayForFalse = 0;
+        for(int i = 0; i < stumps_.size(); ++i) {
+            if(stumps_.at(i).predict(record)) amountOfSayForTrue += amountOfSay_.at(i);
+            else amountOfSayForFalse += amountOfSay_.at(i);
+        }
+        if(amountOfSayForTrue > amountOfSayForFalse) return boolToFeature(true);
+        else return boolToFeature(false);
+    }
+
 
 private:
     std::vector<DecisionStump> stumps_;
