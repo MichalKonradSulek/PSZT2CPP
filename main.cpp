@@ -9,6 +9,17 @@ typedef std::vector<double> RecordWithResult; ///<kontener na jeden obiekt cech 
 typedef std::vector<double> RecordWithoutResult; ///<kontener na jeden obiekt cech bez wyniku
 typedef std::vector<RecordWithResult> Samples; ///<kontener z próbkami
 
+bool operator < (const RecordWithResult& r1, const RecordWithResult& r2) { ///<operator wymagany przez funkcję std::sort
+    if(r1.size() == r2.size()) {
+        for(size_t i = 0; i < r1.size(); ++i) {
+            if(r1.at(i) < r2.at(i)) return true;
+            else if(r1.at(i) > r2.at(i)) return false;
+        }
+        return false;
+    }
+    else return r1.size() < r2.size();
+}
+
 bool featureToBool(double feature) {
     if(feature == 0) return false;
     else return true;
@@ -21,7 +32,7 @@ double boolToFeature(bool b) {
 class DecisionStump {
 public:
     DecisionStump() = default;
-    void setAttributes(size_t indexOfDecisiveFeature, double dividingValue, double resultIfBiggerValue, double resultIfSmallerValue) {
+    void setAttributes(size_t indexOfDecisiveFeature, double dividingValue, bool resultIfBiggerValue, bool resultIfSmallerValue) {
         indexOfDecisiveFeature_ = indexOfDecisiveFeature;
         dividingValue_ = dividingValue;
         resultIfBiggerValue_ = resultIfBiggerValue;
@@ -42,39 +53,54 @@ struct StumpCreator {
     StumpCreator(const Samples& samples, size_t indexOfDecisiveFeature) {
         if(samples.empty()) throw "no samples"; // jeśli nie ma próbek, to nie stworzy się drzewa
         if(indexOfDecisiveFeature >= samples.front().size() - 1) throw "no features"; // jeśli nie ma cech, to nie stworzy się drzewa
-    } //TODO constructor
-    DecisionStump stump;
-    std::vector<bool> tableOfCorrectClassification;
-
-};
-
-bool operator < (const StumpCreator& s1, const StumpCreator& s2) { // operator wymagany przez funkcję min_element
-    return true;
-}
-
-class AdaBoostAlgorithm {
-private:
-    StumpCreator createStump(const Samples& samples, const std::vector<double>& weightsOfSamples) {
-        if(samples.empty()) throw "no samples"; // jeśli nie ma przykładowych danych, to nie ma jak stworzyć drzewa
-        if(samples.front().size() < 2) throw "no features"; // jeśli nie ma żadnych cech (jest tylko wynikowa), to nie ma jak stworzyć drzewa
-        std::vector<std::pair<double, StumpCreator>> possibleStumps; // wektor zawierający drzewo dla każdej z cech oraz współczynnik skuteczności tego drzewa
-        for(size_t i = 0; i < samples.front().size() - 1; ++i) { // tworzenie drzewa dla każdej cechy
-            StumpCreator stumpCreator(samples, i);
-            double rate = rateDecisionStump(samples, stumpCreator);
-            possibleStumps.push_back({rate, stumpCreator}); // dodanie drzewa i jego oceny do wektora;
+        Samples samplesWithOneFeatureAndResult(samples.size(), RecordWithResult(2)); // 2, bo każdy rekord będzie miał 2 kolumny
+        for(size_t i = 0; i < samples.size(); ++i) {
+            samplesWithOneFeatureAndResult.at(i).at(0) = samples.at(i).at(indexOfDecisiveFeature); // jedna z cech zadanych
+            samplesWithOneFeatureAndResult.at(i).at(1) = samples.at(i).back(); // cecha szukana
         }
-        StumpCreator bestDecisionStump = std::min_element(possibleStumps.begin(), possibleStumps.end())->second; //TODO czy napewno min?
-        return bestDecisionStump;
+        std::sort(samplesWithOneFeatureAndResult.begin(), samplesWithOneFeatureAndResult.end());
+
+        double minimalGiniImpurity = 1;
+        double dividingValueForMinimalGI = samplesWithOneFeatureAndResult.front().front();
+        bool stumpReturnIfTrue = true;
+        bool stumpReturnIfFalse = false;
+        for(size_t i = 0; i < samplesWithOneFeatureAndResult.size() - 1; ++i) { // - 1, gdyż liczymy średnią z dwóch sąsiednich
+            double dividingValue = (samplesWithOneFeatureAndResult.at(i).at(0) +
+                    samplesWithOneFeatureAndResult.at(i + 1).at(0)) / 2.0;
+            DecisionStump tempStump;
+            tempStump.setAttributes(0, dividingValue, true, false);
+            double giniImpurity = rateDecisionStump(samplesWithOneFeatureAndResult, tempStump);
+            if(giniImpurity < minimalGiniImpurity) {
+                minimalGiniImpurity = giniImpurity;
+                dividingValueForMinimalGI = dividingValue;
+                stumpReturnIfTrue = lastStumpReturnIfTrue_;
+                stumpReturnIfFalse = lastStumpReturnIfFalse_;
+            }
+        }
+        giniImputiryOfStump = minimalGiniImpurity;
+        stump.setAttributes(indexOfDecisiveFeature, dividingValueForMinimalGI, stumpReturnIfTrue, stumpReturnIfFalse);
+    } //TODO constructor
+
+    std::vector<bool> tableOfCorrectClassification(const Samples& samples) {
+        std::vector<bool> tableOfCorrectClassification(samples.size(), false);
+        for(size_t i = 0; i < samples.size(); ++i) {
+            if(stump.predict(samples.at(i)) == featureToBool(samples.at(i).back()))
+                tableOfCorrectClassification.at(i) = true;
+        }
+        return tableOfCorrectClassification;
     }
 
-    double rateDecisionStump(const Samples& samples, const StumpCreator& stump);
-    double rateDecisionStump(const Samples& samples, const DecisionStump& stump) {
+    DecisionStump stump;
+    double giniImputiryOfStump;
+
+private:
+    double rateDecisionStump(const Samples& samples, const DecisionStump& tempStump) {
         double stumpSaidTrueAndItIs = 0; // liczba przypadków, dla których drzewo powiedziało, że prawda i faktycznie była prawda
         double stumpSaidTrueButItIsNot = 0;
         double stumpSaidFalseAndItIs = 0;
         double stumpSaidFalseButItIsNot = 0;
         for(size_t i = 0; i < samples.size(); ++i) {
-            if(stump.predict(samples.at(i)) == true) {
+            if(tempStump.predict(samples.at(i)) == true) {
                 if(featureToBool(samples.at(i).back()) == true) stumpSaidTrueAndItIs += 1;
                 else stumpSaidTrueButItIsNot += 1;
             }
@@ -83,6 +109,11 @@ private:
                 else stumpSaidFalseButItIsNot += 1;
             }
         }
+        if(stumpSaidTrueAndItIs > stumpSaidFalseButItIsNot) lastStumpReturnIfTrue_ = true;
+        else lastStumpReturnIfTrue_ = false;
+        if(stumpSaidFalseAndItIs > stumpSaidFalseButItIsNot) lastStumpReturnIfFalse_ = false;
+        else lastStumpReturnIfFalse_ = true;
+
         double stumpSaidTrue = stumpSaidTrueAndItIs + stumpSaidTrueButItIsNot; // liczba przypadków, gdy drzewo powiedziało, że prawda
         double stumpSaidFalse = stumpSaidFalseAndItIs + stumpSaidFalseButItIsNot; // liczba przypadków, gdy drzewo powiedziało, że fałs
         double giniImpurityForTrueLeaf;
@@ -92,9 +123,33 @@ private:
         if(stumpSaidFalse <= 0) giniImpurityForFalseLeaf = 1; // unikamy dzielenia przez 0 linijkę poniżej
         else giniImpurityForFalseLeaf = 1 - pow(stumpSaidFalseAndItIs / stumpSaidFalse, 2) - pow(stumpSaidFalseButItIsNot / stumpSaidFalse, 2);
         double giniImpurity = giniImpurityForTrueLeaf * stumpSaidTrue / (stumpSaidTrue + stumpSaidFalse) +
-                giniImpurityForFalseLeaf * stumpSaidFalse / (stumpSaidTrue + stumpSaidFalse);
+                              giniImpurityForFalseLeaf * stumpSaidFalse / (stumpSaidTrue + stumpSaidFalse);
         return giniImpurity;
     }
+
+    bool lastStumpReturnIfTrue_;
+    bool lastStumpReturnIfFalse_;
+};
+
+bool operator < (const StumpCreator& s1, const StumpCreator& s2) { // operator wymagany przez funkcję min_element
+    return s1.giniImputiryOfStump < s2.giniImputiryOfStump;
+}
+
+class AdaBoostAlgorithm {
+private:
+    StumpCreator createStump(const Samples& samples, const std::vector<double>& weightsOfSamples) {
+        if(samples.empty()) throw "no samples"; // jeśli nie ma przykładowych danych, to nie ma jak stworzyć drzewa
+        if(samples.front().size() < 2) throw "no features"; // jeśli nie ma żadnych cech (jest tylko wynikowa), to nie ma jak stworzyć drzewa
+        std::vector<StumpCreator> possibleStumps; // wektor zawierający drzewo dla każdej z cech
+        for(size_t i = 0; i < samples.front().size() - 1; ++i) { // tworzenie drzewa dla każdej cechy (- 1, bo na ostatniej pozycji jest rezultat)
+            possibleStumps.push_back(StumpCreator(samples, i)); // dodanie drzewa i jego oceny do wektora;
+        }
+        StumpCreator bestDecisionStump = *std::min_element(possibleStumps.begin(), possibleStumps.end()); //TODO czy napewno min?
+        return bestDecisionStump;
+    }
+
+    double rateDecisionStump(const Samples& samples, const StumpCreator& stump);
+
 
     double calculateAmountOfSay(const std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification) {
         double totalError = 0;
@@ -158,10 +213,11 @@ public:
         std::vector<double> weightsOfSamples(samples.size(), 1.0 / samples.size());
         for(int i = 0; i < numberOfStumps; ++i) {
             StumpCreator stumpCreator = createStump(samples, weightsOfSamples);
-            double amountOfSay = calculateAmountOfSay(weightsOfSamples, stumpCreator.tableOfCorrectClassification);
+            std::vector<bool> tableOfCorrectClassification = stumpCreator.tableOfCorrectClassification(samples);
+            double amountOfSay = calculateAmountOfSay(weightsOfSamples, tableOfCorrectClassification);
             stumps_.push_back(stumpCreator.stump);
             amountOfSay_.push_back(amountOfSay);
-            recalculateWeights(weightsOfSamples, stumpCreator.tableOfCorrectClassification, amountOfSay);
+            recalculateWeights(weightsOfSamples, tableOfCorrectClassification, amountOfSay);
             changeSamples(samples, weightsOfSamples);
         }
     }
