@@ -4,6 +4,7 @@
 #include <cmath>
 #include <random>
 #include <chrono>
+#include <fstream>
 
 typedef std::vector<double> RecordWithResult; ///<kontener na jeden obiekt cech z wynikiem; szukana cecha jest na końcu
 typedef std::vector<double> RecordWithoutResult; ///<kontener na jeden obiekt cech bez wyniku
@@ -21,7 +22,7 @@ bool operator < (const RecordWithResult& r1, const RecordWithResult& r2) { ///<o
 }
 
 bool featureToBool(double feature) {
-    if(feature == 0) return false;
+    if(feature < 25) return false;
     else return true;
 }
 double boolToFeature(bool b) {
@@ -239,7 +240,61 @@ private:
     std::vector<double> amountOfSay_;
 };
 
+Samples readSamples(const std::string& file, size_t nOfColumns) {
+    std::ifstream fin(file);
+    if(!fin.good()) throw "bad file";
+    Samples samples;
+    samples.reserve(600);
+    double number;
+    int i = 0;
+    while(fin >> number) {
+        if(i % nOfColumns == 0) samples.push_back(RecordWithResult());
+        samples.back().push_back(number);
+        ++i;
+    }
+    return samples;
+}
+
+void showRecord(const RecordWithResult& record) {
+    for(const auto& i: record) {
+        std::cout << i << "\t";
+    }
+}
+
+void showSamples(const Samples& samples) {
+    for(const auto& record: samples) {
+        showRecord(record);
+        std::cout << std::endl;
+    }
+}
+
+void moveBackColumn(Samples& samples, size_t columnIndex) {
+    for(auto& record: samples) {
+        record.push_back(record.at(columnIndex));
+        record.erase(record.begin() + columnIndex);
+    }
+}
+
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    Samples samples = readSamples("../boston.txt", 14);
+//    moveBackColumn(samples, 3);
+    AdaBoostAlgorithm adaBoost;
+    adaBoost.trainAlgorithm(samples, 10);
+
+//    double nOf0 = 0;
+//    for(size_t i = 0; i < samples.size(); ++i) {
+//        if(samples.at(i).back() == 0) ++nOf0;
+//    }
+
+    double numberOfMistakes = 0;
+    for(size_t i = 0; i < samples.size(); ++i) {
+        std::cout << "index: " << i << "\t";
+        std::cout << "adaBoost: " << adaBoost.prediction(samples.at(i)) << "\t";
+        std::cout << "reality : " << samples.at(i).back() << std::endl;
+        if(adaBoost.prediction(samples.at(i)) == 1 && samples.at(i).back() < 25) ++numberOfMistakes;
+        else if(adaBoost.prediction(samples.at(i)) == 0 && samples.at(i).back() >= 25) ++numberOfMistakes;
+    }
+    std::cout << "percent of mistakes: " << numberOfMistakes * 100 / samples.size() << std::endl;
+//    std::cout << "nOf0: " << nOf0 << std::endl;
     return 0;
 }
