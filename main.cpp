@@ -4,10 +4,10 @@
 #include "AdaBoostAlgorithm.h"
 
 int main() {
-    Samples samples = readSamples("../boston.txt", 7);
+    Samples samples = readSamples("../boston.txt", 14);
     moveBackColumn(samples, 3);
     AdaBoostAlgorithm adaBoost;
-    adaBoost.trainAlgorithm(samples, 5);
+    adaBoost.trainAlgorithm(samples, 7);
 
 //    double nOf0 = 0;
 //    for(size_t i = 0; i < samples.size(); ++i) {
