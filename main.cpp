@@ -21,48 +21,12 @@ int main() {
     std::cout << "percent of correct guesses: ";
     std::cout << result << std::endl;
 
-    partOfTestSamples = 0.3;
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
-    std::cout << "percent of correct guesses: ";
-    std::cout << result << std::endl;
-
-    partOfTestSamples = 0.5;
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
-    std::cout << "percent of correct guesses: ";
-    std::cout << result << std::endl;
-
-    partOfTestSamples = 0.99;
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
-    std::cout << "percent of correct guesses: ";
-    std::cout << result << std::endl;
-
     //prediction of the third attribute
 
     indexOfDecisiveAttribute = 2;
     dividingValueOfPredictedAttribute = 15;
-
-    partOfTestSamples = 0.1;
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
-    std::cout << "percent of correct guesses: ";
-    std::cout << result << std::endl;
-
-    partOfTestSamples = 0.3;
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
-    std::cout << "percent of correct guesses: ";
-    std::cout << result << std::endl;
-
     partOfTestSamples = 0.5;
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
-    std::cout << "percent of correct guesses: ";
-    std::cout << result << std::endl;
 
-    partOfTestSamples = 0.99;
     printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
     result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
     std::cout << "percent of correct guesses: ";
