@@ -51,7 +51,7 @@ bool isPredictionCorrect(double predictedValue, double realValue, double decisiv
  * zwracany jest wektor liczb typu double określających procent poprawnych wyników w każdej z prób
  */
 std::vector<double> runAlgorithmNTimes(const Samples& samples, double partOfTestSamples,
-        size_t numberOfDecisionTrees, double dividingValueOfPredictedAttribute, unsigned numberOfRuns, size_t indexOfDecisiveAttribute) {
+        size_t numberOfDecisionTrees, double dividingValueOfPredictedAttribute, unsigned numberOfRuns, size_t indexOfPredictedAttribute) {
     std::vector<double> results;
     for(unsigned i = 0; i < numberOfRuns; ++i) {
 #ifdef VERBOSE
@@ -60,8 +60,8 @@ std::vector<double> runAlgorithmNTimes(const Samples& samples, double partOfTest
         Samples trainingSamples, testSamples;
         trainingSamples = samples;
         testSamples = takeTestSamplesFromSamples(trainingSamples, partOfTestSamples);
-        moveBackColumn(trainingSamples, indexOfDecisiveAttribute); //ustawianie kolumny z szykanym atrybutem na końcu zbioru danych
-        moveBackColumn(testSamples, indexOfDecisiveAttribute);
+        moveBackColumn(trainingSamples, indexOfPredictedAttribute); //ustawianie kolumny z szykanym atrybutem na końcu zbioru danych
+        moveBackColumn(testSamples, indexOfPredictedAttribute);
         AdaBoostAlgorithm adaBoost;
         adaBoost.trainAlgorithm(trainingSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute);
         double numberOfMistakes = 0;

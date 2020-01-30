@@ -11,24 +11,24 @@ int main() {
 
     //prediction of the last attribute
 
-    size_t indexOfDecisiveAttribute = 13;
+    size_t indexOfPredictedAttribute = 13;
     double dividingValueOfPredictedAttribute = 25;
     double partOfTestSamples = 0.1;
     size_t numberOfDecisionTrees = 5;
 
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    auto result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
+    printPrompt(indexOfPredictedAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
+    auto result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfPredictedAttribute);
     std::cout << "percent of correct guesses: ";
     std::cout << result << std::endl;
 
     //prediction of the third attribute
 
-    indexOfDecisiveAttribute = 2;
+    indexOfPredictedAttribute = 2;
     dividingValueOfPredictedAttribute = 15;
     partOfTestSamples = 0.5;
 
-    printPrompt(indexOfDecisiveAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
-    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfDecisiveAttribute);
+    printPrompt(indexOfPredictedAttribute, dividingValueOfPredictedAttribute, partOfTestSamples, numberOfDecisionTrees);
+    result = runAlgorithmNTimes(samples, partOfTestSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute, 10, indexOfPredictedAttribute);
     std::cout << "percent of correct guesses: ";
     std::cout << result << std::endl;
 
