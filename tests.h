@@ -10,6 +10,17 @@
 
 #include "AdaBoostAlgorithm.h"
 
+/** \file Stump.h
+ * Plik zawierający funkcje usprawniające testowanie.
+ */
+
+std::ostream& operator <<(std::ostream& os, const std::vector<double>& vec) {
+    for(const auto& i: vec) {
+        os << i << " ";
+    }
+    return os;
+}
+
 /** funkcja dzieląca próbki na grupę testową i trenującą w określonej proporcji
  * po wykonaniu funkcji zmienna samples zawiera tylko przypadki trenujace
  */
@@ -20,9 +31,9 @@ Samples takeTestSamplesFromSamples(Samples& samples, double partOfTestSamples) {
     testSamples.reserve(numberOfTestSamples);
     std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count()); // generator liczb losowych
     for(size_t i = 0; i < numberOfTestSamples; ++i) {
-        std::uniform_int_distribution<size_t> distribution(0, numberOfTestSamples - 1 - i); // określenie zakresu generowanch liczb
+        std::uniform_int_distribution<size_t> distribution(0, samples.size() - 1); // określenie zakresu generowanch liczb
         size_t drawnNumber = distribution(generator);
-        testSamples.push_back(samples.at(i));
+        testSamples.push_back(samples.at(drawnNumber));
         samples.erase(samples.begin() + drawnNumber);
     }
     return testSamples;
@@ -40,7 +51,7 @@ bool isPredictionCorrect(double predictedValue, double realValue, double decisiv
  * zwracany jest wektor liczb typu double określających procent poprawnych wyników w każdej z prób
  */
 std::vector<double> runAlgorithmNTimes(const Samples& samples, double partOfTestSamples,
-        size_t numberOfDecisionTrees, double dividingValueOfPredictedAttribute, unsigned numberOfRuns) {
+        size_t numberOfDecisionTrees, double dividingValueOfPredictedAttribute, unsigned numberOfRuns, size_t indexOfDecisiveAttribute) {
     std::vector<double> results;
     for(unsigned i = 0; i < numberOfRuns; ++i) {
 #ifdef VERBOSE
@@ -49,6 +60,8 @@ std::vector<double> runAlgorithmNTimes(const Samples& samples, double partOfTest
         Samples trainingSamples, testSamples;
         trainingSamples = samples;
         testSamples = takeTestSamplesFromSamples(trainingSamples, partOfTestSamples);
+        moveBackColumn(trainingSamples, indexOfDecisiveAttribute); //ustawianie kolumny z szykanym atrybutem na końcu zbioru danych
+        moveBackColumn(testSamples, indexOfDecisiveAttribute);
         AdaBoostAlgorithm adaBoost;
         adaBoost.trainAlgorithm(trainingSamples, numberOfDecisionTrees, dividingValueOfPredictedAttribute);
         double numberOfMistakes = 0;
@@ -64,12 +77,6 @@ std::vector<double> runAlgorithmNTimes(const Samples& samples, double partOfTest
     return results;
 }
 
-std::ostream& operator <<(std::ostream& os, const std::vector<double>& vec) {
-    for(const auto& i: vec) {
-        os << i << " ";
-    }
-    return os;
-}
 
 void printPrompt(size_t decisiveAttribute, double dividingValue, double partOfTestSamples, size_t nOfDecisionTrees) {
     std::cout << "decisiveAttribute:" << decisiveAttribute << " dividingValue:" << dividingValue << " partOfTestSamples:" << partOfTestSamples << " nOfDecisionTrees:" << nOfDecisionTrees << std::endl;

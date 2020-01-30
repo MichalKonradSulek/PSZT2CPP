@@ -21,17 +21,17 @@
  */
 class AdaBoostAlgorithm {
 private:
-    StumpCreator createStump(const Samples& samples, const std::vector<double>& weightsOfSamples); ///<metoda tworząca kolejne drzewo decyzyjne, zwracająca kreatora tego drzewa. Drzewo jest tworzone w następujący sposób: dla każdej cechy tworzone jest drzewo, a następnie wybierane takie o najmniejszym współczynniku Giniego
-    double calculateAmountOfSay(const std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification); ///<metoda licząca wpływ drzewa na ostateczną decyzję algorytmu (wagę drzewa), na podstawie ilości podejmowanych poprawnych decyzji
-    void recalculateWeights(std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification, double amountOfSay); ///<metoda aktualizując wagi przykładów
-    void normalizeWeights(std::vector<double>& weightsOfSamples); ///<metoda ormalizująca wagi przykładów tak, by ich suma była równa 1
+    StumpCreator createStump(const Samples& samples, const std::vector<double>& weightsOfSamples) const; ///<metoda tworząca kolejne drzewo decyzyjne, zwracająca kreatora tego drzewa. Drzewo jest tworzone w następujący sposób: dla każdej cechy tworzone jest drzewo, a następnie wybierane takie o najmniejszym współczynniku Giniego
+    double calculateAmountOfSay(const std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification) const; ///<metoda licząca wpływ drzewa na ostateczną decyzję algorytmu (wagę drzewa), na podstawie ilości podejmowanych poprawnych decyzji
+    void recalculateWeights(std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification, double amountOfSay) const; ///<metoda aktualizując wagi przykładów
+    void normalizeWeights(std::vector<double>& weightsOfSamples) const; ///<metoda ormalizująca wagi przykładów tak, by ich suma była równa 1
 
     std::vector<DecisionStump> stumps_; ///<drzewa decyzyjne
     std::vector<double> amountOfSay_; ///<wagi drzew
     double dividingValueOfPredictedAttribute_ = 0; ///<zmienna przechhowująca liczbę, dzielącą szukaną cechę na dwie klasy
 public:
     void trainAlgorithm(const Samples& samples, size_t numberOfStumps, double dividingValueOfPredictedAttribute); ///<metoda trenująca algorytm
-    double prediction(const RecordWithoutResult& record); ///<metoda zwracająca predykcję algorytmu
+    double prediction(const RecordWithoutResult& record) const; ///<metoda zwracająca predykcję algorytmu
 };
 
 

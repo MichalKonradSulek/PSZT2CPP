@@ -4,7 +4,7 @@
 
 #include "AdaBoostAlgorithm.h"
 
-StumpCreator AdaBoostAlgorithm::createStump(const Samples& samples, const std::vector<double>& weightsOfSamples){
+StumpCreator AdaBoostAlgorithm::createStump(const Samples& samples, const std::vector<double>& weightsOfSamples) const{
     if(samples.empty()) throw "no samples"; // jeśli nie ma przykładowych danych, to nie ma jak stworzyć drzewa
     if(samples.front().size() < 2) throw "no features"; // jeśli nie ma żadnych cech (jest tylko wynikowa), to nie ma jak stworzyć drzewa
     std::vector<StumpCreator> possibleStumps; // wektor zawierający drzewo dla każdej z cech
@@ -15,7 +15,7 @@ StumpCreator AdaBoostAlgorithm::createStump(const Samples& samples, const std::v
     return bestDecisionStump;
 }
 
-double AdaBoostAlgorithm::calculateAmountOfSay(const std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification) {
+double AdaBoostAlgorithm::calculateAmountOfSay(const std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification) const{
     double totalError = 0;
     for(size_t i = 0; i < weightsOfSamples.size(); ++i) {
         if(!tableOfCorrectClassification.at(i)) totalError += weightsOfSamples.at(i);
@@ -26,7 +26,7 @@ double AdaBoostAlgorithm::calculateAmountOfSay(const std::vector<double>& weight
     return amountOfSay;
 }
 
-void AdaBoostAlgorithm::recalculateWeights(std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification, double amountOfSay) {
+void AdaBoostAlgorithm::recalculateWeights(std::vector<double>& weightsOfSamples, const std::vector<bool>& tableOfCorrectClassification, double amountOfSay) const{
     for(int i = 0; i < weightsOfSamples.size(); ++i) {
         if(tableOfCorrectClassification.at(i)) { // jeśli dany przypadek był wskazany dobrze, to zmniejszamy wagę
             weightsOfSamples.at(i) *= exp(-amountOfSay);
@@ -38,7 +38,7 @@ void AdaBoostAlgorithm::recalculateWeights(std::vector<double>& weightsOfSamples
     normalizeWeights(weightsOfSamples);
 }
 
-void AdaBoostAlgorithm::normalizeWeights(std::vector<double>& weightsOfSamples) {
+void AdaBoostAlgorithm::normalizeWeights(std::vector<double>& weightsOfSamples) const{
     double sum = 0;
     for(const auto& i: weightsOfSamples) {
         sum += i;
@@ -70,7 +70,7 @@ void AdaBoostAlgorithm::trainAlgorithm(const Samples& samples, size_t numberOfSt
     }
 }
 
-double AdaBoostAlgorithm::prediction(const RecordWithoutResult& record) {
+double AdaBoostAlgorithm::prediction(const RecordWithoutResult& record) const{
     double amountOfSayForTrue = 0;
     double amountOfSayForFalse = 0;
     for(int i = 0; i < stumps_.size(); ++i) {

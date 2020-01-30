@@ -52,7 +52,7 @@ StumpCreator::StumpCreator(const Samples& samples, size_t indexOfDecisiveFeature
     stump.setAttributes(indexOfDecisiveFeature, dividingValueForMinimalSR, stumpReturnIfTrue, stumpReturnIfFalse);
 }
 
-std::vector<bool> StumpCreator::tableOfCorrectClassification(const Samples& samples) {
+std::vector<bool> StumpCreator::tableOfCorrectClassification(const Samples& samples) const{
     std::vector<bool> tableOfCorrectClassification(samples.size(), false); // na początku zakładamy, że wszystkieodpowiedzi są błędne
     for(size_t i = 0; i < samples.size(); ++i) {
         if(stump.predict(samples.at(i)) == featureToBool(samples.at(i).back(), dividingValueOfPredictedAttribute_))

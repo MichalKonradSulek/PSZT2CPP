@@ -49,7 +49,7 @@ private:
  */
 struct StumpCreator {
     StumpCreator(const Samples& samples, size_t indexOfDecisiveFeature, const std::vector<double>& weights, double dividingValueOfPredictedAttribute); ///<konstruktor, jednocześnie przeprowadza on całą operację tworzeni drzewa
-    std::vector<bool> tableOfCorrectClassification(const Samples& samples); ///<metoda poddaje przykłady zawarte w "samples" analizie drzewa i zwraca wektor zmiennych typu bool, określający, czy dany przypadek został sklasyfikowany prawidłowo
+    std::vector<bool> tableOfCorrectClassification(const Samples& samples) const; ///<metoda poddaje przykłady zawarte w "samples" analizie drzewa i zwraca wektor zmiennych typu bool, określający, czy dany przypadek został sklasyfikowany prawidłowo
 
     DecisionStump stump; ///<faktyczne drzewo decyzyjne
     double rateOfThisStump; ///<ważona ilość popełnionych błędów przez drzewo podczas trenowania

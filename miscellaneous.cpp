@@ -29,7 +29,7 @@ double boolToFeature(bool b, double dividingValue) {
 Samples readSamples(const std::string& file, size_t nOfColumns) {
     std::ifstream fin(file);
     if(!fin.good()) {
-        std::cerr << "File not found" << std::endl;
+        std::cerr << "File not found. Check file path." << std::endl;
         throw "bad file";
     }
     Samples samples;
