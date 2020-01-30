@@ -43,21 +43,22 @@ private:
  * 3. dla każdej pary sąsiednich wierszy liczona jest wartość średnia cechy decyzyjnej
  * 4. dla każdej wartości średniej tworzone jest drzewo decyzyjne
  * 5. Każde drzewo analizuje wszystkie dostępne przykłady i badana jest jego skuteczność
- * 6. liczony jest współczynnik Giniego dla każdego drzewa
- * 7. wybierane jest drzewo z najmniejszym współczynnikiem Giniego i w ten sposób ustalana jest wartość graniczna dla drzewa
+ * 6. liczona jest lilość popełnianych błędów (z uwzględnieniem wag) dla każdego drzewa
+ * 7. wybierane jest drzewo z najmniejszą ilością błędów i w ten sposób ustalana jest wartość graniczna dla drzewa
  * 8. gotowe drzewo wpisywane jest do zmiennej stump
  */
 struct StumpCreator {
-    StumpCreator(const Samples& samples, size_t indexOfDecisiveFeature); ///<konstruktor, jednocześnie przeprowadza on całą operację tworzeni drzewa
+    StumpCreator(const Samples& samples, size_t indexOfDecisiveFeature, const std::vector<double>& weights, double dividingValueOfPredictedAttribute); ///<konstruktor, jednocześnie przeprowadza on całą operację tworzeni drzewa
     std::vector<bool> tableOfCorrectClassification(const Samples& samples); ///<metoda poddaje przykłady zawarte w "samples" analizie drzewa i zwraca wektor zmiennych typu bool, określający, czy dany przypadek został sklasyfikowany prawidłowo
 
     DecisionStump stump; ///<faktyczne drzewo decyzyjne
-    double giniImputiryOfStump; ///<współczynnik Giniego dla tego drzewa
+    double rateOfThisStump; ///<ważona ilość popełnionych błędów przez drzewo podczas trenowania
 private:
-    double rateDecisionStump(const Samples& samples, const DecisionStump& tempStump); ///<metoda przeprowadzająca analizę wszystkich przypadków z "samles" i zwraca współczynnik Giniego dla danego drzewa
+    double rateDecisionStump(const Samples& samples, const DecisionStump& tempStump, const std::vector<double>& weights); ///<metoda przeprowadzająca analizę wszystkich przypadków z "samles" i zwraca współczynnik Giniego dla danego drzewa
 
     bool lastStumpReturnIfTrue_; ///<zmienna przechowująca informację o tym, jaką wartość powinno zwracać ostatnio badane drzewo, gdy wartość cechy jest większa od wartości decyzyjnej
     bool lastStumpReturnIfFalse_; ///<zmienna przechowująca informację o tym, jaką wartość powinno zwracać ostatnio badane drzewo, gdy wartość cechy jest mniejsza od wartości decyzyjnej
+    double dividingValueOfPredictedAttribute_; ///<zmienna przechhowująca liczbę, dzielącą szukaną cechę na dwie klasy
 };
 
 bool operator < (const StumpCreator& s1, const StumpCreator& s2); ///<operator wymagany przez funkcję min_element, stwierdza, że jeden kreator jest mniejszy od drugiego, gdy zapisany w nim współczynnik Giniego jest mniejszy

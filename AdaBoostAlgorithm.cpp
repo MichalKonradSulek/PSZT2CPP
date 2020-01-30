@@ -4,12 +4,12 @@
 
 #include "AdaBoostAlgorithm.h"
 
-StumpCreator AdaBoostAlgorithm::createStump(const Samples& samples, const std::vector<double>& weightsOfSamples) {
+StumpCreator AdaBoostAlgorithm::createStump(const Samples& samples, const std::vector<double>& weightsOfSamples){
     if(samples.empty()) throw "no samples"; // jeśli nie ma przykładowych danych, to nie ma jak stworzyć drzewa
     if(samples.front().size() < 2) throw "no features"; // jeśli nie ma żadnych cech (jest tylko wynikowa), to nie ma jak stworzyć drzewa
     std::vector<StumpCreator> possibleStumps; // wektor zawierający drzewo dla każdej z cech
     for(size_t i = 0; i < samples.front().size() - 1; ++i) { // tworzenie drzewa dla każdej cechy (- 1, bo na ostatniej pozycji jest rezultat)
-        possibleStumps.push_back(StumpCreator(samples, i)); // dodanie drzewa i jego oceny do wektora;
+        possibleStumps.push_back(StumpCreator(samples, i, weightsOfSamples, dividingValueOfPredictedAttribute_)); // dodanie drzewa i jego oceny do wektora;
     }
     StumpCreator bestDecisionStump = *std::min_element(possibleStumps.begin(), possibleStumps.end());
     return bestDecisionStump;
@@ -49,39 +49,24 @@ void AdaBoostAlgorithm::normalizeWeights(std::vector<double>& weightsOfSamples) 
     }
 }
 
-void AdaBoostAlgorithm::changeSamples(Samples& samples, std::vector<double>& weightsOfSamples) {
-    Samples newSamples(samples.size());
-    std::vector<double> newWeights(samples.size());
-    std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count()); // generator liczb losowych
-    std::uniform_real_distribution<double> distribution(0, 1); // określenie zakresu generowanch liczb
-    for(int i = 0; i < samples.size(); ++i) {
-        double drawnNumber = distribution(generator);
-        for(int j = 0; j < samples.size(); ++j) { //sprawdzanie do której "przegródki" wpadła wylosowana liczba
-            if(drawnNumber <= weightsOfSamples.at(j)){
-                newSamples.at(i) = samples.at(j);
-                newWeights.at(i) = weightsOfSamples.at(j);
-                break;
-            }
-            drawnNumber -= weightsOfSamples.at(j);
-        }
-    }
-    normalizeWeights(newWeights);
-    std::swap(samples, newSamples);
-    std::swap(weightsOfSamples, newWeights);
-}
-
-void AdaBoostAlgorithm::trainAlgorithm(Samples samples, size_t numberOfStumps) {
+void AdaBoostAlgorithm::trainAlgorithm(const Samples& samples, size_t numberOfStumps, double dividingValueOfPredictedAttribute) {
+    dividingValueOfPredictedAttribute_ = dividingValueOfPredictedAttribute;
     stumps_.clear();
     amountOfSay_.clear();
     std::vector<double> weightsOfSamples(samples.size(), 1.0 / samples.size()); // inicjalizujemy wagi równymi wartościami dla każdego z przypadków
     for(int i = 0; i < numberOfStumps; ++i) {
+//        std::cout << "iteration " << i << std::endl;
         StumpCreator stumpCreator = createStump(samples, weightsOfSamples);
         std::vector<bool> tableOfCorrectClassification = stumpCreator.tableOfCorrectClassification(samples);
+//        for(int j = 0; j < samples.size(); ++j) {
+//            showRecord(samples.at(j), weightsOfSamples.at(j));
+//            std::cout << "toc: " << tableOfCorrectClassification.at(j) << std::endl;
+//        }
         double amountOfSay = calculateAmountOfSay(weightsOfSamples, tableOfCorrectClassification);
         stumps_.push_back(stumpCreator.stump);
         amountOfSay_.push_back(amountOfSay);
         recalculateWeights(weightsOfSamples, tableOfCorrectClassification, amountOfSay);
-        changeSamples(samples, weightsOfSamples);
+//        changeSamples(samples, weightsOfSamples);
     }
 }
 
@@ -92,6 +77,6 @@ double AdaBoostAlgorithm::prediction(const RecordWithoutResult& record) {
         if(stumps_.at(i).predict(record)) amountOfSayForTrue += amountOfSay_.at(i);
         else amountOfSayForFalse += amountOfSay_.at(i);
     }
-    if(amountOfSayForTrue > amountOfSayForFalse) return boolToFeature(true);
-    else return boolToFeature(false);
+    if(amountOfSayForTrue > amountOfSayForFalse) return boolToFeature(true, dividingValueOfPredictedAttribute_);
+    else return boolToFeature(false, dividingValueOfPredictedAttribute_);
 }

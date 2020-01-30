@@ -18,15 +18,15 @@ typedef std::vector<RecordWithResult> Samples; ///<kontener z próbkami
 
 bool operator < (const RecordWithResult& r1, const RecordWithResult& r2); ///<operator wymagany przez funkcję std::sort
 
-bool featureToBool(double feature); ///<funkcja zmieniajaca wartość liczbową (cechę) na operator boolowski używany przez drzewo decyzyjne
+bool featureToBool(double feature,  double dividingValue); ///<funkcja zmieniajaca wartość liczbową (cechę) na operator boolowski używany przez drzewo decyzyjne
 
-double boolToFeature(bool b); ///<funkcja zamieniająca operator boolowski używany przez drzewo decyzyjne na wartość liczbową (cechę)
+double boolToFeature(bool b,  double dividingValue); ///<funkcja zamieniająca operator boolowski używany przez drzewo decyzyjne na wartość liczbową (cechę)
 
 Samples readSamples(const std::string& file, size_t nOfColumns); ///<wczytuje dane z pliku i umieszcza w strukturze Samples, argumenty: nazwa pliku, liczba kolumn
 
-void showRecord(const RecordWithResult& record); ///<wyświetla pojedynczy rekord (osobnika)
+void showRecord(const RecordWithResult& record, double weight); ///<wyświetla pojedynczy rekord (osobnika)
 
-void showSamples(const Samples& samples); ///<wyświetla zawartość tablicy z osobnikami
+void showSamples(const Samples& samples, const std::vector<double>& weights); ///<wyświetla zawartość tablicy z osobnikami
 
 void moveBackColumn(Samples& samples, size_t columnIndex); ///<funkcja przestawia wybraną kolumnę na koniec zestawu danych, argumenty: tablica z danymi, kolumna do przesunięcia
 

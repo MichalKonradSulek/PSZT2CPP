@@ -1,27 +1,21 @@
+//#define VERBOSE //należy zakomentować, by nie wyświetlać komunikatów "run0 run1... "
+
 #include <iostream>
 
-
+#include "tests.h"
 #include "AdaBoostAlgorithm.h"
 
 int main() {
-    Samples samples = readSamples("../boston.txt", 14);
-    moveBackColumn(samples, 3);
-    AdaBoostAlgorithm adaBoost;
-    adaBoost.trainAlgorithm(samples, 7);
+    Samples samples = readSamples("../boston.txt", 14); //w przypadku nieznalezienia pliku poprawić ścieżkę
+    const size_t INDEX_OF_DECISIVE_ATTRIBUTE = 14;
+    const double DECISIVE_VALUE = 25;
+    const double PART_OF_TEST_SAMPLES = 0.1;
+    const size_t NUMBER_OF_DECISION_TREES = 5;
 
-//    double nOf0 = 0;
-//    for(size_t i = 0; i < samples.size(); ++i) {
-//        if(samples.at(i).back() == 0) ++nOf0;
-//    }
+    printPrompt(INDEX_OF_DECISIVE_ATTRIBUTE, DECISIVE_VALUE, PART_OF_TEST_SAMPLES, NUMBER_OF_DECISION_TREES);
+    auto result = runAlgorithmNTimes(samples, PART_OF_TEST_SAMPLES, NUMBER_OF_DECISION_TREES, DECISIVE_VALUE, 10);
 
-    double numberOfMistakes = 0;
-    for(size_t i = 0; i < samples.size(); ++i) {
-        std::cout << "index: " << i << "\t";
-        std::cout << "adaBoost: " << adaBoost.prediction(samples.at(i)) << "\t";
-        std::cout << "reality : " << samples.at(i).back() << std::endl;
-        if(adaBoost.prediction(samples.at(i)) != samples.at(i).back() == 0) ++numberOfMistakes;
-    }
-    std::cout << "percent of mistakes: " << numberOfMistakes * 100 / samples.size() << std::endl;
-//    std::cout << "nOf0: " << nOf0 << std::endl;
+    std::cout << "percent of correct guesses: " << result << std::endl;
+
     return 0;
 }
